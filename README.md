@@ -1,4 +1,4 @@
-# Human Resource Management System (HQ.LMS / HQ.Admin)
+# Human Resource Management System (ML-LMS / ML-Admin)
 
 A complete MERN stack Human Resource Management System with distinct Employee and Admin applications.
 
