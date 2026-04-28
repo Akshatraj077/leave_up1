@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -22,7 +23,7 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/employee/login', {
+      const res = await axiosInstance.post('/login', {
         emailOrCompanyId: identifier,
         password,
       });

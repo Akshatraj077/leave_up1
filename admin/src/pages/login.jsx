@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import axiosInstance from '../api/axiosInstance';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/admin/login', {
+      const res = await axiosInstance.post('/login', {
         email,
         password,
       });
