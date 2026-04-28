@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: 'Inter', sans-serif;
+  --color-background: #0B0F19;
+  --color-card: #111827;
+  --color-primary: #6366F1;
+  --color-secondary: #22D3EE;
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+  --color-danger: #EF4444;
+  --color-textPrime: #F9FAFB;
+  --color-textSec: #9CA3AF;
+  --color-border: #1F2937;
+}
+
+body {
+  background-color: #0B0F19;
+  color: #F9FAFB;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1F2937;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: #F9FAFB;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
