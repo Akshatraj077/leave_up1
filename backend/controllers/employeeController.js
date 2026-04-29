@@ -414,8 +414,6 @@ exports.getCalendar = async (req, res) => {
   }
 };
 
-
-
 exports.markPresent = async (req, res) => {
   try {
     const now = new Date();

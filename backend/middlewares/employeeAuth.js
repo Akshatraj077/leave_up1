@@ -26,7 +26,7 @@ const employeeAuth = async (req, res, next) => {
       });
     }
 
-    req.user = { id: user._id, email: user.email, role: user.role, name: user.name };
+    req.user = { id: user._id.toString(), email: user.email, role: user.role, name: user.name };
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });
