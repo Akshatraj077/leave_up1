@@ -155,6 +155,67 @@ exports.getAllEmployees = async (req, res) => {
   }
 };
 
+// exports.addEmployee = async (req, res) => {
+//   try {
+//     const {
+//       name, email, company_id, password, joining_date, date_of_birth,
+//       employment_status, department, pan_number, bank_account_number,
+//       bank_name, ifsc_code, account_holder_name
+//     } = req.body;
+
+//     const exist = await User.findOne({
+//       $or: [{ email }, { company_id }],
+//       isDeleted: false
+//     });
+//     if (exist) return res.status(400).json({ success: false, message: 'Email or Company ID already exists' });
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const user = new User({
+//       name,
+//       email,
+//       company_id,
+//       password: hashedPassword,
+//       role: 'EMPLOYEE',
+//       joining_date,
+//       date_of_birth,
+//       employment_status,
+//       department: department || null,
+//       pan_number: pan_number || null,
+//       bank_account_number: bank_account_number || null,
+//       bank_name: bank_name || null,
+//       ifsc_code: ifsc_code || null,
+//       account_holder_name: account_holder_name || null,
+//       admin_password_reset_required: true
+//     });
+//     await user.save();
+
+//     const policy = await getPolicy();
+//     const currentFY = getCurrentFinancialYear(policy);
+//     const totalLeaves = employment_status === 'PROBATION' ? policy.probation_leave_quota : policy.default_cl_per_year;
+
+//     await LeaveBalance.findOneAndUpdate(
+//       { user_id: user._id, year: currentFY },
+//       {
+//         $setOnInsert: {
+//           total_leaves: totalLeaves,
+//           used_leaves: 0,
+//           remaining_leaves: totalLeaves,
+//           comp_off_balance: 0,
+//           lop_days: 0
+//         }
+//       },
+//       { upsert: true, returnDocument: 'after' }
+//     );
+
+//     const userObj = user.toObject();
+//     delete userObj.password;
+//     res.json({ success: true, data: userObj, message: 'Employee added successfully' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: 'An internal server error occurred' });
+//   }
+// };
+
 exports.addEmployee = async (req, res) => {
   try {
     const {
@@ -163,13 +224,55 @@ exports.addEmployee = async (req, res) => {
       bank_name, ifsc_code, account_holder_name
     } = req.body;
 
+    // 🔍 Check ANY existing user (including deleted)
     const exist = await User.findOne({
-      $or: [{ email }, { company_id }],
-      isDeleted: false
+      $or: [{ email }, { company_id }]
     });
-    if (exist) return res.status(400).json({ success: false, message: 'Email or Company ID already exists' });
 
+    // ❌ If user exists and is ACTIVE → block
+    if (exist && exist.isDeleted === false) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email or Company ID already exists'
+      });
+    }
+
+    // 🔄 If user exists but is DELETED → restore
+    if (exist && exist.isDeleted === true) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      exist.name = name;
+      exist.password = hashedPassword;
+      exist.company_id = company_id;
+      exist.joining_date = joining_date;
+      exist.date_of_birth = date_of_birth;
+      exist.employment_status = employment_status;
+      exist.department = department || null;
+      exist.pan_number = pan_number || null;
+      exist.bank_account_number = bank_account_number || null;
+      exist.bank_name = bank_name || null;
+      exist.ifsc_code = ifsc_code || null;
+      exist.account_holder_name = account_holder_name || null;
+
+      exist.isDeleted = false;
+      exist.deletedAt = null;
+      exist.admin_password_reset_required = true;
+
+      await exist.save();
+
+      const userObj = exist.toObject();
+      delete userObj.password;
+
+      return res.json({
+        success: true,
+        data: userObj,
+        message: 'Employee restored successfully'
+      });
+    }
+
+    // ✅ Create NEW user (only if no record exists at all)
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = new User({
       name,
       email,
@@ -185,13 +288,19 @@ exports.addEmployee = async (req, res) => {
       bank_name: bank_name || null,
       ifsc_code: ifsc_code || null,
       account_holder_name: account_holder_name || null,
-      admin_password_reset_required: true
+      admin_password_reset_required: true,
+      isDeleted: false // explicit (good practice)
     });
+
     await user.save();
 
+    // 📊 Leave balance setup
     const policy = await getPolicy();
     const currentFY = getCurrentFinancialYear(policy);
-    const totalLeaves = employment_status === 'PROBATION' ? policy.probation_leave_quota : policy.default_cl_per_year;
+    const totalLeaves =
+      employment_status === 'PROBATION'
+        ? policy.probation_leave_quota
+        : policy.default_cl_per_year;
 
     await LeaveBalance.findOneAndUpdate(
       { user_id: user._id, year: currentFY },
@@ -209,10 +318,28 @@ exports.addEmployee = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    res.json({ success: true, data: userObj, message: 'Employee added successfully' });
+
+    res.json({
+      success: true,
+      data: userObj,
+      message: 'Employee added successfully'
+    });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'An internal server error occurred' });
+
+    // 🔴 Handle duplicate key properly (fallback safety)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email or Company ID already exists'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'An internal server error occurred'
+    });
   }
 };
 
