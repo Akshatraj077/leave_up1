@@ -39,9 +39,9 @@ exports.login = async (req, res) => {
 
 exports.getDashboard = async (req, res) => {
   try {
-    const totalEmployees = await User.countDocuments({ role: 'EMPLOYEE', isDeleted: { $ne: true } });
-    const pendingLeaves = await Leave.countDocuments({ status: 'APPLIED', isDeleted: { $ne: true } });
-    const activeEmployees = await User.countDocuments({ role: 'EMPLOYEE', employment_status: 'ACTIVE', isDeleted: { $ne: true } });
+    const totalEmployees = await User.countDocuments({ role: 'EMPLOYEE', isDeleted: false });
+    const pendingLeaves = await Leave.countDocuments({ status: 'APPLIED', isDeleted: false});
+    const activeEmployees = await User.countDocuments({ role: 'EMPLOYEE', employment_status: 'ACTIVE', isDeleted: false});
     
     const now = new Date();
     const todayString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -102,7 +102,7 @@ exports.getAttendanceToday = async (req, res) => {
       return hDate.getTime() === today.getTime();
     });
 
-    const totalEmployees = await User.countDocuments({ role: 'EMPLOYEE', isDeleted: { $ne: true } });
+    const totalEmployees = await User.countDocuments({ role: 'EMPLOYEE', isDeleted: false});
     const absentCount = await Attendance.countDocuments({ date: today, status: 'ABSENT' });
 
     res.json({
@@ -130,7 +130,7 @@ exports.getAllEmployees = async (req, res) => {
     const { page, limit, skip } = getPaginationParams(req.query);
     const { search, employment_status, department } = req.query;
     
-    let query = { role: 'EMPLOYEE', isDeleted: { $ne: true } };
+    let query = { role: 'EMPLOYEE', isDeleted: false };
     if (employment_status && employment_status !== 'ALL' && employment_status !== 'All') {
       query.employment_status = employment_status;
     }
@@ -163,7 +163,10 @@ exports.addEmployee = async (req, res) => {
       bank_name, ifsc_code, account_holder_name
     } = req.body;
 
-    const exist = await User.findOne({ $or: [{ email }, { company_id }] });
+    const exist = await User.findOne({
+      $or: [{ email }, { company_id }],
+      isDeleted: false
+    });
     if (exist) return res.status(400).json({ success: false, message: 'Email or Company ID already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -235,7 +238,7 @@ exports.editEmployee = async (req, res) => {
     }
 
     const user = await User.findOneAndUpdate(
-      { _id: req.params.id, isDeleted: { $ne: true } },
+      { _id: req.params.id, isDeleted: false},
       updates,
       { returnDocument: 'after' }
     ).select('-password');
