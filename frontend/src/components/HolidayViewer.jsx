@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Loader2, Calendar as CalendarIcon, MapPin, AlertCircle, Check, ChevronsUpDown } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon, MapPin, AlertCircle, Check, ChevronsUpDown, Key, Search } from 'lucide-react';
 
 const INDIAN_STATES = [
   { label: "Andaman and Nicobar Islands", value: "IN-AN" },
@@ -40,26 +40,39 @@ const INDIAN_STATES = [
   { label: "West Bengal", value: "IN-WB" }
 ];
 
-const fetchHolidays = async (year) => {
+const fetchHolidays = async (year, apiKey) => {
+  if (!apiKey) {
+    throw new Error('API_KEY_MISSING');
+  }
+  
   try {
-    const res = await axios.get(`https://date.nager.at/api/v3/PublicHolidays/${year}/IN`);
-    const rawData = res.data || [];
+    const res = await axios.get(`https://calendarific.com/api/v2/holidays?api_key=${apiKey}&country=IN&year=${year}`);
+    
+    if (res.data?.meta?.code !== 200) {
+      throw new Error(res.data?.meta?.error_detail || 'Failed to fetch holidays');
+    }
+
+    const rawData = res.data?.response?.holidays || [];
     
     // Normalize Data
     return rawData.map(h => {
-      const regions = h.counties || [];
+      const isNational = (h.type && h.type.includes("National holiday")) || h.locations === "All" || h.states === "All";
+      
+      let regions = [];
+      if (Array.isArray(h.states)) {
+        regions = h.states.map(s => s.iso || s.abbrev || "");
+      }
+
       return {
         name: h.name,
-        date: h.date,
-        type: regions.length === 0 ? "NATIONAL" : "REGIONAL",
+        date: h.date?.iso?.split('T')[0], // Extract just the YYYY-MM-DD
+        type: isNational ? "NATIONAL" : "REGIONAL",
         regions: regions
       };
     });
   } catch (error) {
-    if (error.response && error.response.status === 404) {
-      return []; // Return empty array if the year is not found / no data
-    }
-    throw new Error('Failed to fetch holidays');
+    if (error.message === 'API_KEY_MISSING') throw error;
+    throw new Error(error.response?.data?.meta?.error_detail || error.message || 'Failed to fetch holidays');
   }
 };
 
@@ -98,7 +111,7 @@ const MultiSelect = ({ options, selected, onChange, placeholder }) => {
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-2 overflow-auto text-sm border shadow-lg bg-card border-border/50 max-h-60 rounded-xl">
+        <div className="absolute z-50 w-full mt-2 overflow-auto text-sm border shadow-2xl bg-card border-border max-h-60 rounded-xl">
           <div className="p-1">
             {options.map((option) => {
               const isSelected = selected.includes(option.value);
@@ -182,41 +195,54 @@ const HolidayList = ({ title, holidays, theme, icon: Icon, emptyMessage }) => {
 export const HolidaySection = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [selectedStates, setSelectedStates] = useState([]);
+  const [tempSelectedStates, setTempSelectedStates] = useState([]);
+  const [appliedStates, setAppliedStates] = useState([]);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('calendarific_api_key') || '');
   
   // Cache structure: { 2024: [...], 2025: [...] }
   const [holidaysCache, setHolidaysCache] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
-    const loadHolidays = async () => {
-      if (holidaysCache[selectedYear]) return; // Already cached
-      
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchHolidays(selectedYear);
-        setHolidaysCache(prev => ({ ...prev, [selectedYear]: data }));
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load holidays for this year. Please try again.");
-      } finally {
-        setLoading(false);
+  const handleApply = async () => {
+    setHasSearched(true);
+    setAppliedStates(tempSelectedStates);
+    
+    if (apiKey) {
+      localStorage.setItem('calendarific_api_key', apiKey);
+    } else {
+      setError("Please provide a Calendarific API key.");
+      return;
+    }
+
+    if (holidaysCache[selectedYear]) return; // Already cached
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchHolidays(selectedYear, apiKey);
+      setHolidaysCache(prev => ({ ...prev, [selectedYear]: data }));
+    } catch (err) {
+      console.error(err);
+      if (err.message === 'API_KEY_MISSING') {
+        setError("Please provide a valid Calendarific API key.");
+      } else {
+        setError(`Failed to fetch holidays: ${err.message}`);
       }
-    };
-
-    loadHolidays();
-  }, [selectedYear, holidaysCache]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const currentHolidays = holidaysCache[selectedYear] || [];
   
   const nationalHolidays = currentHolidays.filter(h => h.type === "NATIONAL");
   const regionalHolidays = currentHolidays.filter(h => h.type === "REGIONAL");
   
-  // Deduplicate regional holidays if a holiday exists in multiple selected states
+  // Deduplicate regional holidays
   const filteredRegionalHolidays = regionalHolidays.filter(h =>
-    h.regions.some(r => selectedStates.includes(r))
+    h.regions.some(r => appliedStates.includes(r))
   ).filter((value, index, self) =>
     index === self.findIndex((t) => (
       t.name === value.name && t.date === value.date
@@ -224,51 +250,90 @@ export const HolidaySection = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 mt-8">
+    <div className="max-w-6xl mx-auto space-y-6 mt-8 relative z-40">
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Public Holidays</h2>
-          <p className="text-textSec text-sm mt-1">View national and regional holidays for India.</p>
+          <p className="text-textSec text-sm mt-1">View national and regional holidays for India using Calendarific API.</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-sm items-start sm:items-center">
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-textSec ml-1 uppercase tracking-wider">Year</label>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-4 py-2 border rounded-xl bg-background/50 border-border/60 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm [color-scheme:dark]"
-            >
-              <option value={currentYear - 2}>{currentYear - 2}</option>
-              <option value={currentYear - 1}>{currentYear - 1}</option>
-              <option value={currentYear}>{currentYear}</option>
-              <option value={currentYear + 1}>{currentYear + 1}</option>
-              <option value={currentYear + 2}>{currentYear + 2}</option>
-            </select>
-          </div>
+        <div className="flex flex-col gap-4 bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-5 shadow-sm relative z-50">
+          
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            {/* API Key Input */}
+            <div className="flex flex-col gap-1 w-full sm:w-64">
+              <label className="text-xs font-semibold text-textSec ml-1 uppercase tracking-wider flex items-center gap-1">
+                <Key className="w-3 h-3"/> API Key
+              </label>
+              <input
+                type="password"
+                placeholder="Calendarific API Key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="px-4 py-2 border rounded-xl bg-background/50 border-border/60 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm [color-scheme:dark]"
+              />
+            </div>
 
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-textSec ml-1 uppercase tracking-wider">Filter by State</label>
-            <MultiSelect 
-              options={INDIAN_STATES}
-              selected={selectedStates}
-              onChange={setSelectedStates}
-              placeholder="Select states..."
-            />
+            <div className="flex flex-col gap-1 w-full sm:w-32">
+              <label className="text-xs font-semibold text-textSec ml-1 uppercase tracking-wider">Year</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  setSelectedYear(Number(e.target.value));
+                  setHasSearched(false);
+                }}
+                className="px-4 py-2 border rounded-xl bg-background/50 border-border/60 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm [color-scheme:dark]"
+              >
+                <option value={currentYear - 2}>{currentYear - 2}</option>
+                <option value={currentYear - 1}>{currentYear - 1}</option>
+                <option value={currentYear}>{currentYear}</option>
+                <option value={currentYear + 1}>{currentYear + 1}</option>
+                <option value={currentYear + 2}>{currentYear + 2}</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 w-full sm:w-64">
+              <label className="text-xs font-semibold text-textSec ml-1 uppercase tracking-wider">Filter by State</label>
+              <MultiSelect 
+                options={INDIAN_STATES}
+                selected={tempSelectedStates}
+                onChange={setTempSelectedStates}
+                placeholder="Select states..."
+              />
+            </div>
+
+            <button 
+              onClick={handleApply}
+              disabled={loading}
+              className="px-6 py-2 h-[38px] bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              Fetch Holidays
+            </button>
           </div>
+          
+          <p className="text-[10px] text-textSec/60 italic ml-1">
+            * Get your free API key from <a href="https://calendarific.com/" target="_blank" rel="noreferrer" className="text-primary hover:underline">calendarific.com</a>
+          </p>
         </div>
       </div>
 
-      <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-3xl p-6 shadow-sm min-h-[400px]">
+      <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-3xl p-6 shadow-sm min-h-[400px] relative z-10">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64">
             <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
             <p className="text-textSec">Fetching holiday data...</p>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center h-64 text-red-400">
+          <div className="flex flex-col items-center justify-center h-64 text-red-400 max-w-lg mx-auto text-center">
             <AlertCircle className="w-10 h-10 mb-4 opacity-80" />
-            <p>{error}</p>
+            <p className="font-medium mb-2">{error}</p>
+            <p className="text-sm opacity-80">Make sure your API key is valid and you haven't exceeded the free tier limits.</p>
+          </div>
+        ) : !hasSearched && currentHolidays.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-textSec">
+            <CalendarIcon className="w-10 h-10 mb-4 opacity-20" />
+            <p>Click "Fetch Holidays" to load data for {selectedYear}.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
@@ -285,8 +350,8 @@ export const HolidaySection = () => {
               theme="blue"
               icon={MapPin}
               holidays={filteredRegionalHolidays}
-              emptyMessage={selectedStates.length === 0 
-                ? "Select one or more states above to view regional holidays." 
+              emptyMessage={appliedStates.length === 0 
+                ? "Select one or more states and apply to view regional holidays." 
                 : "No regional holidays found for the selected states."}
             />
           </div>
