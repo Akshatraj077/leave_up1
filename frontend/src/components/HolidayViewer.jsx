@@ -56,12 +56,13 @@ const fetchHolidays = async (year, apiKey) => {
     
     // Normalize Data
     return rawData.map(h => {
-      const isNational = (h.type && h.type.includes("National holiday")) || h.locations === "All" || h.states === "All";
-      
       let regions = [];
       if (Array.isArray(h.states)) {
         regions = h.states.map(s => s.iso || s.abbrev || "");
       }
+
+      // A holiday is National ONLY if it applies to all states (no specific regions returned)
+      const isNational = regions.length === 0;
 
       return {
         name: h.name,
