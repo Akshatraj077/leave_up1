@@ -29,7 +29,8 @@ const { runYearEndCarryForward } = require('./utils/yearEndUtils');
 const app = express();
 
 app.use(helmet());
-const whitelist = [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:5173', 'http://localhost:5174'];
+// , 'http://localhost:5173', 'http://localhost:5174'
+const whitelist = [process.env.FRONTEND_URL, process.env.ADMIN_URL];
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || whitelist.indexOf(origin) !== -1) {
