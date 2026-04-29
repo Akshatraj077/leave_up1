@@ -8,6 +8,7 @@ import {
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Loader2, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { HolidaySection } from '../components/HolidayViewer';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -177,6 +178,9 @@ const Calendar = () => {
           </div>
         )}
       </div>
+
+      {/* New Holiday Viewer Section */}
+      <HolidaySection />
     </motion.div>
   );
 };

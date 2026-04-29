@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, FileEdit } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { HolidaySection } from '../components/HolidayViewer';
 
 // RegularizationModal Component
 const RegularizationModal = ({ isOpen, onClose, selectedDate, onSuccess }) => {
@@ -336,6 +337,9 @@ const Calendar = () => {
         selectedDate={regModalDate}
         onSuccess={() => fetchCalendarData(currentDate)}
       />
+
+      {/* New Holiday Viewer Section */}
+      <HolidaySection />
     </motion.div>
   );
 };
