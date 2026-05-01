@@ -21,10 +21,12 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const employeeRoutes = require('./routes/employeeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const publicHolidayRoutes = require('./routes/publicHolidayRoutes');
 const User = require('./models/User');
 const LeavePolicy = require('./models/LeavePolicy');
 const { resolveAllPendingAttendance } = require('./utils/attendanceUtils');
 const { runYearEndCarryForward } = require('./utils/yearEndUtils');
+const { fetchAndStoreHolidays } = require('./controllers/publicHolidayController');
 
 const app = express();
 
@@ -54,8 +56,13 @@ app.use(express.json());
 // app.use('/api/', apiLimiter);
 
 
+const employeeAuth = require('./middlewares/employeeAuth');
+const adminAuth = require('./middlewares/adminAuth');
+
 app.use('/api/employee', employeeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/employee/public-holidays', employeeAuth, publicHolidayRoutes);
+app.use('/api/admin/public-holidays', adminAuth, publicHolidayRoutes);
 
 const seedAdmin = async () => {
   try {
@@ -125,6 +132,18 @@ mongoose.connect(process.env.MONGO_URI)
         console.log('[CRON] Year-end carry-forward complete.');
       } catch (err) {
         console.error('[CRON] Year-end carry-forward error:', err);
+      }
+    });
+
+    // Auto-fetch public holidays on Jan 1st every year at 01:00
+    cron.schedule('0 1 1 1 *', async () => {
+      console.log('[CRON] Fetching public holidays for new year...');
+      try {
+        const currentYear = new Date().getFullYear();
+        await fetchAndStoreHolidays(currentYear);
+        console.log('[CRON] Public holidays fetched successfully.');
+      } catch (err) {
+        console.error('[CRON] Public holiday fetch error:', err);
       }
     });
 
