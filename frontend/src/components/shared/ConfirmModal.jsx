@@ -18,7 +18,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto"
+              className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto"
             >
               <h2 className="text-xl font-semibold mb-2">{title}</h2>
               <p className="text-text-secondary mb-6">{message}</p>

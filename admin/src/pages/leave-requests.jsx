@@ -249,7 +249,7 @@ const LeaveRequests = () => {
       </div>
 
       {selectedLeaves.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <span className="text-primary font-medium text-sm">{selectedLeaves.length} leave(s) selected</span>
           <div className="flex items-center gap-3">
             <button onClick={handleBulkApprove} disabled={actionLoading} className="px-4 py-2 rounded-lg bg-success text-white font-medium text-sm hover:bg-success/90 transition-colors disabled:opacity-50">Approve All</button>
@@ -339,7 +339,7 @@ const LeaveRequests = () => {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setRejectTarget(null)} />
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
                 <h2 className="text-xl font-semibold mb-4 text-white">Reject Leave</h2>
                 <p className="text-textSec text-sm mb-4">Rejecting leave for <span className="text-white font-medium">{rejectTarget?.user_id?.name}</span> on {formatDate(rejectTarget?.date)}</p>
                 <div className="mb-6">
@@ -368,7 +368,7 @@ const LeaveRequests = () => {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setTrailTarget(null)} />
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[70vh] overflow-y-auto">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[70vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4 text-white">Audit Trail</h2>
                 <AuditTrailTimeline trail={trailTarget} />
                 <div className="flex justify-end mt-6">
@@ -386,7 +386,7 @@ const LeaveRequests = () => {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setShowExportModal(false)} />
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
                 <h2 className="text-xl font-semibold mb-4 text-white">Export Leave Records</h2>
                 <div className="space-y-4 mb-6">
                   <div>
@@ -437,7 +437,7 @@ const LeaveRequests = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-card border border-border/50 rounded-2xl
-                shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-md
+                shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-md mx-4
                 p-6 relative z-10"
             >
               <h3 className="text-xl font-bold text-white mb-1">

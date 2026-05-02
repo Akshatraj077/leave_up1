@@ -106,7 +106,7 @@ const Calendar = () => {
         </div>
       </div>
 
-      <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6">
+      <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-3 sm:p-4 md:p-6">
         
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-6 mb-6 pb-6 border-b border-border/50 text-sm font-medium">
@@ -129,7 +129,8 @@ const Calendar = () => {
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-px bg-border/50 border border-border/50 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto -mx-1 sm:mx-0">
+          <div className="grid grid-cols-7 gap-px bg-border/50 border border-border/50 rounded-xl overflow-hidden min-w-[500px]">
             {/* Header */}
             {weekDays.map(day => (
               <div key={day} className="bg-background/90 py-3 text-center text-sm font-semibold text-textSec">
@@ -145,7 +146,7 @@ const Calendar = () => {
               return (
                 <div 
                   key={idx} 
-                  className={`min-h-[140px] bg-card p-3 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'} ${data.holiday ? 'bg-blue-900/10' : ''}`}
+                  className={`min-h-[90px] sm:min-h-[140px] bg-card p-1.5 sm:p-3 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'} ${data.holiday ? 'bg-blue-900/10' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-2 relative">
                     <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-white text-black' : 'text-textSec'}`}>
@@ -175,6 +176,7 @@ const Calendar = () => {
                 </div>
               );
             })}
+          </div>
           </div>
         )}
       </div>

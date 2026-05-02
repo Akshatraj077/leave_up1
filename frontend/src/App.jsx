@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -14,12 +15,14 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
 const AppLayout = ({ children }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
+      <Sidebar isMenuOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       <div className="flex flex-col flex-1 w-full relative">
-        <Navbar />
-        <main className="w-full h-full overflow-y-auto p-6 flex-1">
+        <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} />
+        <main className="w-full h-full overflow-y-auto p-3 sm:p-4 md:p-6 flex-1">
           {children}
         </main>
       </div>

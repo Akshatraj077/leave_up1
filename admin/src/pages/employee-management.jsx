@@ -95,7 +95,7 @@ const EmployeeManagement = () => {
           <h2 className="text-2xl font-bold text-white tracking-tight">Employee Management</h2>
           <p className="text-textSec text-sm mt-1">Manage employee records, access, and statuses.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textSec" />
             <input
@@ -103,7 +103,7 @@ const EmployeeManagement = () => {
               placeholder="Search by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-56"
+              className="pl-9 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-full sm:w-56"
             />
           </div>
           <div className="relative">
@@ -112,7 +112,7 @@ const EmployeeManagement = () => {
               placeholder="Filter by Department..."
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="px-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-48"
+              className="px-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-full sm:w-48"
             />
           </div>
           <button
@@ -294,7 +294,7 @@ const ModalLayout = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} 
-      className="bg-card border border-border/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col relative z-10"
+      className="bg-card border border-border/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-3xl mx-2 sm:mx-4 max-h-[90vh] overflow-hidden flex flex-col relative z-10"
     >
       <div className="flex justify-between items-center p-6 border-b border-border/50">
         <h3 className="text-xl font-bold text-white">{title}</h3>

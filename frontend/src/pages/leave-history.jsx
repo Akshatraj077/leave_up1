@@ -205,7 +205,7 @@ const LeaveHistory = () => {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setTrailTarget(null)} />
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[70vh] overflow-y-auto">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[70vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4 text-white">Audit Trail</h2>
                 <AuditTrailTimeline trail={trailTarget} />
                 <div className="flex justify-end mt-6">

@@ -179,7 +179,7 @@ const Profile = () => {
             </div>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
              <button
                 onClick={() => setShowMasked(!showMasked)}
                 className="flex items-center gap-2 px-4 py-2 bg-background/50 border border-border/50 hover:bg-background rounded-xl text-sm font-medium text-textSec hover:text-white transition-colors"

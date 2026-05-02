@@ -1,12 +1,13 @@
 import React, { useContext } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, CalendarPlus, History, CalendarDays, User, LogOut, FileCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LayoutDashboard, CalendarPlus, History, CalendarDays, User, LogOut, FileCheck, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Sidebar = () => {
+const Sidebar = ({ isMenuOpen, onClose }) => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -22,8 +23,14 @@ const Sidebar = () => {
     { name: 'Profile', path: '/profile', icon: User },
   ];
 
-  return (
-    <div className="w-64 h-full bg-[#111827]/80 backdrop-blur-md flex flex-col justify-between hidden md:flex z-10 shadow-[4px_0_24px_rgba(0,0,0,0.2)] border-r border-[#1F2937]/50 relative">
+  /* Close mobile menu on route change */
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
+  /* Shared nav content rendered in both desktop and mobile sidebars */
+  const renderNav = () => (
+    <>
       <div>
         <div className="h-16 flex items-center px-6 border-b border-[#1F2937]/50">
           <h1 className="text-xl font-semibold text-white tracking-wide">
@@ -35,6 +42,7 @@ const Sidebar = () => {
             <NavLink
               key={item.name}
               to={item.path}
+              onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                   isActive
@@ -73,7 +81,54 @@ const Sidebar = () => {
           Logout
         </button>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* ── Desktop Sidebar ── visible lg and above, unchanged from original */}
+      <div className="w-64 h-full bg-[#111827]/80 backdrop-blur-md flex-col justify-between hidden lg:flex z-10 shadow-[4px_0_24px_rgba(0,0,0,0.2)] border-r border-[#1F2937]/50 relative">
+        {renderNav()}
+      </div>
+
+      {/* ── Mobile Slide-in Overlay Sidebar ── visible below lg when isMenuOpen is true
+           Uses z-40 so it sits above page content (z-10) but below modals (z-50).
+           Slide-in overlay pattern chosen because a Leave Management app has 6+ nav items
+           with labels — a bottom tab bar cannot accommodate this many items clearly. */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+              onClick={onClose}
+            />
+            {/* Sidebar panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed top-0 left-0 w-72 h-full bg-[#111827] z-40 lg:hidden flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.4)] border-r border-[#1F2937]/50"
+            >
+              {/* Close button */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-textSec hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+              {renderNav()}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

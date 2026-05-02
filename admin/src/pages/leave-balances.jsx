@@ -55,7 +55,7 @@ const LeaveBalances = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchBalances(1, search)}
-              className="pl-9 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-64"
+              className="pl-9 pr-4 py-2.5 rounded-xl bg-background/50 border border-border/60 text-white text-sm focus:ring-1 focus:ring-primary w-full sm:w-64"
             />
           </div>
           <button onClick={() => fetchBalances(1, search)} className="p-2.5 rounded-xl border border-border/60 text-textSec hover:text-white hover:bg-white/5 transition-all">

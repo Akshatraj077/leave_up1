@@ -45,7 +45,7 @@ const RegularizationModal = ({ isOpen, onClose, selectedDate, onSuccess }) => {
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={onClose} />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
               <h2 className="text-xl font-semibold mb-1 text-white">Request Regularization</h2>
               <p className="text-textSec text-sm mb-4">
                 For: <span className="text-white font-medium">{selectedDate ? format(selectedDate, 'EEEE, MMM dd, yyyy') : ''}</span>
@@ -220,7 +220,7 @@ const Calendar = () => {
         </div>
       </div>
 
-      <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6">
+      <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-3 sm:p-4 md:p-6">
         
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b border-border/50 text-xs font-medium">
@@ -239,7 +239,8 @@ const Calendar = () => {
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-px bg-border/50 border border-border/50 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto -mx-1 sm:mx-0">
+          <div className="grid grid-cols-7 gap-px bg-border/50 border border-border/50 rounded-xl overflow-hidden min-w-[500px]">
             {/* Header */}
             {weekDays.map(day => (
               <div key={day} className="bg-background/90 py-3 text-center text-sm font-semibold text-textSec">
@@ -266,7 +267,7 @@ const Calendar = () => {
               return (
                 <div 
                   key={idx} 
-                  className={`min-h-[120px] bg-card p-2 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'}`}
+                  className={`min-h-[80px] sm:min-h-[120px] bg-card p-1.5 sm:p-2 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-white text-black' : 'text-textSec'}`}>
@@ -327,6 +328,7 @@ const Calendar = () => {
                 </div>
               );
             })}
+          </div>
           </div>
         )}
       </div>

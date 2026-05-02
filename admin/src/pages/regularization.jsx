@@ -152,7 +152,7 @@ const Regularization = () => {
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setRejectTarget(null)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card w-full max-w-md p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card w-full max-w-md mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto">
               <h2 className="text-xl font-semibold mb-4 text-white">Reject Regularization</h2>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-textSec mb-2">Admin Remark (Optional)</label>
@@ -173,7 +173,7 @@ const Regularization = () => {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setDetailTarget(null)} />
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-lg p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[80vh] overflow-y-auto">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-card w-full max-w-lg mx-4 p-6 rounded-2xl shadow-luxury border border-border pointer-events-auto max-h-[80vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-white">Regularization Details</h2>
                   {getStatusBadge(detailTarget.status)}
