@@ -71,7 +71,7 @@ export const HolidaySection = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [addForm, setAddForm] = useState({ name: '', date: '', note: '' });
+  const [addForm, setAddForm] = useState({ name: '', date: '', note: '', type: 'NATIONAL' });
   const [addingCustom, setAddingCustom] = useState(false);
 
   // Action feedback
@@ -207,7 +207,8 @@ export const HolidaySection = () => {
       await axiosInstance.post('/public-holidays/custom', {
         name: addForm.name.trim(),
         date: addForm.date,
-        note: addForm.note
+        note: addForm.note,
+        type: addForm.type
       });
       setAddForm({ name: '', date: '', note: '' });
       setShowAddForm(false);
@@ -464,6 +465,19 @@ export const HolidaySection = () => {
                     placeholder="Optional note"
                     className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white placeholder-textSec/30 focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
+                </div>
+                <div className="w-full sm:w-[160px]">
+                  <label className="block text-[11px] uppercase tracking-wider text-textSec/60 font-semibold mb-1">
+                    Type *
+                  </label>
+                  <select
+                    value={addForm.type}
+                    onChange={(e) => setAddForm({ ...addForm, type: e.target.value })}
+                    className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  >
+                    <option value="NATIONAL">National</option>
+                    <option value="REGIONAL">Regional</option>
+                  </select>
                 </div>
                 <button
                   type="submit"
