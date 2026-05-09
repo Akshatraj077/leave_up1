@@ -59,6 +59,7 @@ app.use(express.json());
 const employeeAuth = require('./middlewares/employeeAuth');
 const adminAuth = require('./middlewares/adminAuth');
 
+
 app.use('/api/employee', employeeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/employee/public-holidays', employeeAuth, publicHolidayRoutes);
