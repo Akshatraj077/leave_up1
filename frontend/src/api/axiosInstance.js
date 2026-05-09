@@ -24,8 +24,8 @@ axiosInstance.interceptors.response.use(
       window.location.href = '/login';
     }
     if (error.response && error.response.status === 403 && error.response.data?.forcePasswordReset) {
-      if (!window.location.pathname.includes('/profile')) {
-        window.location.href = '/profile?forcePasswordReset=true';
+      if (!window.location.pathname.includes('/change-password')) {
+        window.location.href = '/change-password';
       }
     }
     return Promise.reject(error);

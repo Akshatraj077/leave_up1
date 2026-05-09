@@ -11,6 +11,7 @@ import LeaveHistory from './pages/leave-history';
 import Calendar from './pages/calendar';
 import Profile from './pages/profile';
 import RegularizationHistory from './pages/regularization-history';
+import ChangePassword from './pages/change-password';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
@@ -46,6 +47,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/change-password" element={
+            <ProtectedRoute allowWhenMustChange><ChangePassword /></ProtectedRoute>
+          } />
           
           <Route path="/dashboard" element={
              <ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>

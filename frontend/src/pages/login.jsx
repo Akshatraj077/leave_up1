@@ -29,8 +29,14 @@ const Login = () => {
       });
       
       login(res.data.data.token, res.data.data.user);
-      toast.success(res.data.message);
-      navigate('/dashboard');
+
+      if (res.data.data.user.admin_password_reset_required) {
+        toast('You must change your password before continuing.', { icon: '⚠️' });
+        navigate('/change-password', { replace: true });
+      } else {
+        toast.success(res.data.message);
+        navigate('/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

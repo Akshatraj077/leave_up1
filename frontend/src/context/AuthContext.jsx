@@ -26,6 +26,12 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const clearMustChangePassword = () => {
+    const updatedUser = { ...user, admin_password_reset_required: false };
+    localStorage.setItem('hrms_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('hrms_token');
     localStorage.removeItem('hrms_user');
@@ -33,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading, clearMustChangePassword }}>
       {!loading && children}
     </AuthContext.Provider>
   );
