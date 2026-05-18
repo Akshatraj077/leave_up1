@@ -182,7 +182,7 @@ const Calendar = () => {
       </div>
 
       {/* New Holiday Viewer Section */}
-      <HolidaySection />
+      {/* <HolidaySection /> */}
     </motion.div>
   );
 };
