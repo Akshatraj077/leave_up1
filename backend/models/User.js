@@ -19,6 +19,16 @@ const userSchema = new mongoose.Schema({
   ifsc_code: { type: String },
   account_holder_name: { type: String },
   department: { type: String, trim: true, default: null },
+  location: {
+    type: String,
+    enum: [
+      'AP','AR','AS','BR','CG','GA','GJ','HR','HP','JH',
+      'KA','KL','MP','MH','MN','ML','MZ','NL','OD','PB',
+      'RJ','SK','TN','TG','TR','UP','UT','WB',
+      'AN','CH','DN','DL','JK','LA','LD','PY'
+    ],
+    default: null
+  },
   admin_password_reset_required: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },

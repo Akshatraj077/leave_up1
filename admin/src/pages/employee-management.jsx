@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Plus, Edit2, Trash2, X, Gift, Search } from 'lucide-react';
 import ConfirmModal from '../components/shared/ConfirmModal';
 import PaginationControls from '../components/shared/PaginationControls';
+import { INDIAN_STATES, getStateName } from '../utils/indianStates';
 
 const EmployeeManagement = () => {
   const [employees, setEmployees] = useState([]);
@@ -162,6 +163,7 @@ const EmployeeManagement = () => {
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Company ID</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Department</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Status</th>
+                <th className="px-6 py-4 font-medium whitespace-nowrap">Location</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Joining Date</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap text-right">Actions</th>
               </tr>
@@ -174,6 +176,11 @@ const EmployeeManagement = () => {
                   <td className="px-6 py-4 text-textSec font-mono whitespace-nowrap">{emp.company_id}</td>
                   <td className="px-6 py-4 text-textSec whitespace-nowrap">{emp.department || <span className="text-textSec/50 italic">—</span>}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(emp.employment_status)}</td>
+                  <td className="px-6 py-4 text-textSec whitespace-nowrap">
+                    {emp.location ? getStateName(emp.location) : (
+                      <span className="text-warning/70 text-xs">Not Set</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-textSec whitespace-nowrap">{formatDate(emp.joining_date)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right flex items-center justify-end gap-2">
                     <button onClick={() => setCompOffTarget(emp)} className="text-success hover:text-success/80 transition-colors p-1" title="Grant Comp Off">
@@ -189,7 +196,7 @@ const EmployeeManagement = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-textSec">No employees found.</td>
+                  <td colSpan="8" className="px-6 py-12 text-center text-textSec">No employees found.</td>
                 </tr>
               )}
             </tbody>
@@ -223,7 +230,7 @@ const AddEmployeeModal = ({ onClose, refresh }) => {
   const [formData, setFormData] = useState({
     name: '', email: '', company_id: '', password: '', 
     joining_date: '', date_of_birth: '', employment_status: 'ACTIVE',
-    department: '',
+    department: '', location: '',
     pan_number: '', bank_account_number: '', bank_name: '', ifsc_code: '', account_holder_name: ''
   });
   const [loading, setLoading] = useState(false);
@@ -258,6 +265,7 @@ const EditEmployeeModal = ({ employee, onClose, refresh }) => {
     date_of_birth: employee.date_of_birth ? new Date(employee.date_of_birth).toISOString().split('T')[0] : '', 
     employment_status: employee.employment_status || 'ACTIVE',
     department: employee.department || '',
+    location: employee.location || '',
     leaveQuota: '', // custom field for admin
     pan_number: employee.pan_number || '', bank_account_number: employee.bank_account_number || '', 
     bank_name: employee.bank_name || '', ifsc_code: employee.ifsc_code || '', account_holder_name: employee.account_holder_name || ''
@@ -348,6 +356,27 @@ const EmployeeForm = ({ formData, setFormData, onSubmit, loading, isEdit }) => {
         <div>
            <label className="block text-xs font-medium text-textSec uppercase mb-1">Department</label>
            <input type="text" name="department" value={formData.department || ''} onChange={handleChange} className="w-full px-3 py-2 border border-border/60 rounded-lg bg-background/50 text-white focus:ring-1 focus:ring-primary text-sm" placeholder="e.g. Engineering" />
+        </div>
+        {/* Location / State */}
+        <div>
+          <label className="block text-xs font-medium text-textSec uppercase mb-1">
+            Location / State {!isEdit && <span className="text-danger">*</span>}
+          </label>
+          <select
+            name="location"
+            value={formData.location || ''}
+            onChange={handleChange}
+            required={!isEdit}
+            className="w-full px-3 py-2.5 border border-border/60 rounded-lg bg-background/50 text-white focus:ring-1 focus:ring-primary text-sm"
+          >
+            <option value="">Select State...</option>
+            {INDIAN_STATES.map(s => (
+              <option key={s.code} value={s.code}>{s.name}</option>
+            ))}
+          </select>
+          {!isEdit && (
+            <p className="text-[10px] text-textSec mt-1">Required. Determines which state-specific holidays apply.</p>
+          )}
         </div>
         {isEdit && (
           <div>

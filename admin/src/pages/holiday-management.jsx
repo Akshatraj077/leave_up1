@@ -5,6 +5,7 @@ import { formatDate } from '../utils/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Plus, Edit2, Trash2, X } from 'lucide-react';
 import ConfirmModal from '../components/shared/ConfirmModal';
+import { INDIAN_STATES, getStateName } from '../utils/indianStates';
 
 const HolidayManagement = () => {
   const [holidays, setHolidays] = useState([]);
@@ -91,6 +92,7 @@ const HolidayManagement = () => {
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Date</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Day</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Type</th>
+                <th className="px-6 py-4 font-medium whitespace-nowrap">Scope</th>
                 <th className="px-6 py-4 font-medium whitespace-nowrap text-right">Actions</th>
               </tr>
             </thead>
@@ -105,6 +107,23 @@ const HolidayManagement = () => {
                      </span>
                   </td>
                   <td className="px-6 py-4 text-textSec capitalize">{h.type?.toLowerCase() || 'national'}</td>
+                  <td className="px-6 py-4 text-textSec whitespace-nowrap max-w-[200px]">
+                    {h.isGlobal !== false ? (
+                      <span className="px-2.5 py-1 bg-success/10 text-success border border-success/20 rounded-md text-xs font-semibold">
+                        Global
+                      </span>
+                    ) : (
+                      <span
+                        className="text-xs text-textSec/80 truncate block"
+                        title={h.applicableStates?.map(getStateName).join(', ')}
+                      >
+                        {h.applicableStates?.length > 0
+                          ? h.applicableStates.map(getStateName).join(', ')
+                          : <span className="text-warning/70">No states set</span>
+                        }
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right space-x-3">
                     <button onClick={() => openEditModal(h)} className="text-secondary hover:text-secondary/80 transition-colors p-1" title="Edit">
                       <Edit2 size={16} />
@@ -116,7 +135,7 @@ const HolidayManagement = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-textSec">No holidays registered.</td>
+                  <td colSpan="6" className="px-6 py-12 text-center text-textSec">No holidays registered.</td>
                 </tr>
               )}
             </tbody>
@@ -147,7 +166,9 @@ const HolidayModal = ({ holiday, onClose, refresh }) => {
   const [formData, setFormData] = useState({
     name: holiday?.name || '',
     date: holiday?.date ? new Date(holiday.date).toISOString().split('T')[0] : '',
-    type: holiday?.type || 'NATIONAL'
+    type: holiday?.type || 'NATIONAL',
+    isGlobal: holiday?.isGlobal !== false,
+    applicableStates: holiday?.applicableStates || []
   });
   const [loading, setLoading] = useState(false);
 
@@ -202,6 +223,60 @@ const HolidayModal = ({ holiday, onClose, refresh }) => {
                 <option value="OPTIONAL">Optional Holiday</option>
               </select>
             </div>
+
+            {/* isGlobal toggle */}
+            <div>
+              <label className="block text-xs font-medium text-textSec uppercase mb-2">Holiday Scope *</label>
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-border/40 bg-background/30 hover:bg-background/50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.isGlobal}
+                  onChange={e =>
+                    setFormData({ ...formData, isGlobal: e.target.checked, applicableStates: [] })
+                  }
+                  className="w-4 h-4 rounded accent-primary cursor-pointer"
+                />
+                <div>
+                  <p className="text-sm text-white font-medium">Global Holiday</p>
+                  <p className="text-[11px] text-textSec mt-0.5">
+                    {formData.isGlobal
+                      ? 'Visible to all employees regardless of location.'
+                      : 'Only visible to employees in selected states.'}
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* applicableStates — shown only when isGlobal is false */}
+            {!formData.isGlobal && (
+              <div>
+                <label className="block text-xs font-medium text-textSec uppercase mb-1">
+                  Applicable States <span className="text-danger">*</span>
+                </label>
+                <select
+                  multiple
+                  value={formData.applicableStates}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      applicableStates: Array.from(e.target.selectedOptions, o => o.value)
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-border/60 rounded-lg bg-background/50 text-white focus:ring-1 focus:ring-primary text-sm h-36"
+                >
+                  {INDIAN_STATES.map(s => (
+                    <option key={s.code} value={s.code}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-textSec mt-1">
+                  Hold Ctrl (Windows) or Cmd (Mac) to select multiple states.
+                  {formData.applicableStates.length > 0 && (
+                    <span className="text-primary ml-2">{formData.applicableStates.length} selected</span>
+                  )}
+                </p>
+              </div>
+            )}
+
             <div className="pt-4 flex justify-end">
               <button type="submit" disabled={loading} className="w-full sm:w-auto flex justify-center items-center gap-2 py-2.5 px-6 rounded-xl shadow-lg text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-all disabled:opacity-70">
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (isEdit ? 'Save Changes' : 'Create Holiday')}

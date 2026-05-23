@@ -27,6 +27,7 @@ const LeavePolicy = require('./models/LeavePolicy');
 const { resolveAllPendingAttendance } = require('./utils/attendanceUtils');
 const { runYearEndCarryForward } = require('./utils/yearEndUtils');
 const { fetchAndStoreHolidays } = require('./controllers/publicHolidayController');
+const { migrateHolidaysToGlobal } = require('./utils/migrationUtils');
 
 const app = express();
 
@@ -113,6 +114,7 @@ mongoose.connect(process.env.MONGO_URI)
     console.log('Connected to MongoDB');
     seedAdmin();
     seedPolicy();
+    migrateHolidaysToGlobal();
 
     // IL-1: Midnight attendance resolution cron (runs 00:05 every day)
     cron.schedule('5 0 * * *', async () => {

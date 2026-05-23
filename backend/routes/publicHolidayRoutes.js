@@ -14,7 +14,8 @@ router.get('/', getHolidays);
 // POST sync holidays from API (admin only — auth at prefix level)
 router.post('/sync', syncHolidays);
 
-// POST add a custom holiday (admin only)
+// POST add a custom holiday (admin only) — both routes supported
+router.post('/', addCustomHoliday);
 router.post('/custom', addCustomHoliday);
 
 // PUT update a holiday's name/note (admin only)

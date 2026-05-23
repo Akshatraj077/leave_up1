@@ -12,7 +12,16 @@ exports.addEmployeeValidator = [
     .withMessage('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number and 1 special character'),
   body('employment_status')
     .optional()
-    .isIn(['ACTIVE', 'NOTICE_PERIOD', 'PROBATION']).withMessage('Invalid employment status')
+    .isIn(['ACTIVE', 'NOTICE_PERIOD', 'PROBATION']).withMessage('Invalid employment status'),
+  body('location')
+    .notEmpty().withMessage('Employee location (state) is required')
+    .isIn([
+      'AP','AR','AS','BR','CG','GA','GJ','HR','HP','JH',
+      'KA','KL','MP','MH','MN','ML','MZ','NL','OD','PB',
+      'RJ','SK','TN','TG','TR','UP','UT','WB',
+      'AN','CH','DN','DL','JK','LA','LD','PY'
+    ])
+    .withMessage('Invalid Indian state code')
 ];
 
 exports.rejectLeaveValidator = [
@@ -30,12 +39,32 @@ exports.updatePolicyValidator = [
   body('financial_year_start_month').isInt({ min: 1, max: 12 }).withMessage('Invalid month')
 ];
 
+const VALID_STATE_CODES = [
+  'AP','AR','AS','BR','CG','GA','GJ','HR','HP','JH',
+  'KA','KL','MP','MH','MN','ML','MZ','NL','OD','PB',
+  'RJ','SK','TN','TG','TR','UP','UT','WB',
+  'AN','CH','DN','DL','JK','LA','LD','PY'
+];
+
 exports.addHolidayValidator = [
   body('name').notEmpty().withMessage('Holiday name is required'),
   body('date').isISO8601().withMessage('Valid date is required'),
   body('type')
     .optional()
-    .isIn(['NATIONAL', 'REGIONAL', 'OPTIONAL']).withMessage('Invalid holiday type')
+    .isIn(['NATIONAL', 'REGIONAL', 'OPTIONAL'])
+    .withMessage('Invalid holiday type'),
+  body('isGlobal')
+    .optional()
+    .isBoolean()
+    .withMessage('isGlobal must be a boolean'),
+  body('applicableStates')
+    .optional()
+    .isArray()
+    .withMessage('applicableStates must be an array'),
+  body('applicableStates.*')
+    .optional()
+    .isIn(VALID_STATE_CODES)
+    .withMessage('One or more invalid state codes in applicableStates')
 ];
 
 exports.creditCompOffValidator = [

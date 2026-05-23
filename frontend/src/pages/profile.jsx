@@ -4,8 +4,9 @@ import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Loader2, Eye, EyeOff, Save, Key, User as UserIcon, AlertCircle } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { INDIAN_STATES, getStateName } from '../utils/indianStates';
 
-const PROFILE_FIELDS = ['name', 'email', 'date_of_birth', 'joining_date', 'pan_number', 'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name'];
+const PROFILE_FIELDS = ['name', 'email', 'date_of_birth', 'joining_date', 'pan_number', 'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name', 'location'];
 
 const getCompletionPercent = (profile) => {
   if (!profile) return 0;
@@ -62,7 +63,7 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      const { name, pan_number, bank_account_number, bank_name, ifsc_code, account_holder_name } = profile;
+      const { name, pan_number, bank_account_number, bank_name, ifsc_code, account_holder_name, location } = profile;
       
       const payload = {
         name,
@@ -70,7 +71,8 @@ const Profile = () => {
         bank_account_number,
         bank_name,
         ifsc_code,
-        account_holder_name
+        account_holder_name,
+        location: location || null
       };
 
       const res = await axiosInstance.put('/profile', payload);
@@ -237,6 +239,34 @@ const Profile = () => {
             <div>
               <label className="block text-xs font-medium text-textSec uppercase tracking-wider mb-2">Joining Date</label>
               <p className="text-white font-medium bg-background/30 px-3 py-2 rounded-lg border border-transparent">{formatDate(profile.joining_date)}</p>
+            </div>
+
+            {/* Field: Location / State */}
+            <div>
+              <label className="block text-xs font-medium text-textSec uppercase tracking-wider mb-2">
+                Location / State
+              </label>
+              {editing ? (
+                <select
+                  value={profile.location || ''}
+                  onChange={e => setProfile({ ...profile, location: e.target.value || null })}
+                  className="block w-full px-3 py-2 border border-border/60 rounded-lg bg-background/50 text-white focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                >
+                  <option value="">Select your state...</option>
+                  {INDIAN_STATES.map(s => (
+                    <option key={s.code} value={s.code}>{s.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-white font-medium bg-background/30 px-3 py-2 rounded-lg border border-transparent">
+                  {getStateName(profile.location)}
+                </p>
+              )}
+              {editing && (
+                <p className="text-[10px] text-textSec mt-1">
+                  Your state determines which regional holidays are visible to you.
+                </p>
+              )}
             </div>
 
             <div className="col-span-1 sm:col-span-2 mt-4">

@@ -41,5 +41,14 @@ exports.updateProfileValidator = [
     .matches(/^[0-9]{9,18}$/).withMessage('Invalid bank account number'),
   body('ifsc_code')
     .optional()
-    .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('Invalid IFSC code format')
+    .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('Invalid IFSC code format'),
+  body('location')
+    .optional()
+    .isIn([
+      'AP','AR','AS','BR','CG','GA','GJ','HR','HP','JH',
+      'KA','KL','MP','MH','MN','ML','MZ','NL','OD','PB',
+      'RJ','SK','TN','TG','TR','UP','UT','WB',
+      'AN','CH','DN','DL','JK','LA','LD','PY'
+    ])
+    .withMessage('Invalid Indian state code')
 ];

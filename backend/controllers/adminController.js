@@ -221,7 +221,7 @@ exports.addEmployee = async (req, res) => {
     const {
       name, email, company_id, password, joining_date, date_of_birth,
       employment_status, department, pan_number, bank_account_number,
-      bank_name, ifsc_code, account_holder_name
+      bank_name, ifsc_code, account_holder_name, location
     } = req.body;
 
     // 🔍 Check ANY existing user (including deleted)
@@ -253,6 +253,7 @@ exports.addEmployee = async (req, res) => {
       exist.bank_name = bank_name || null;
       exist.ifsc_code = ifsc_code || null;
       exist.account_holder_name = account_holder_name || null;
+      exist.location = location || null;
 
       exist.isDeleted = false;
       exist.deletedAt = null;
@@ -283,6 +284,7 @@ exports.addEmployee = async (req, res) => {
       date_of_birth,
       employment_status,
       department: department || null,
+      location: location || null,
       pan_number: pan_number || null,
       bank_account_number: bank_account_number || null,
       bank_name: bank_name || null,
@@ -348,7 +350,8 @@ exports.editEmployee = async (req, res) => {
     const allowedFields = [
       'name', 'email', 'department', 'employment_status',
       'joining_date', 'date_of_birth', 'pan_number',
-      'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name'
+      'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name',
+      'location'
     ];
     const updates = {};
     allowedFields.forEach(field => {
@@ -722,37 +725,91 @@ exports.getAllHolidays = async (req, res) => {
 
 exports.addHoliday = async (req, res) => {
   try {
-    const { name, date, type } = req.body;
+    const { name, date, type, isGlobal, applicableStates } = req.body;
+
     const dateStr = date.split('T')[0];
     const d = new Date(`${dateStr}T00:00:00.000Z`);
-    const holiday = new Holiday({ name, date: d, type: type || 'NATIONAL' });
+
+    // Determine scope
+    const isGlobalValue = isGlobal === false || isGlobal === 'false' ? false : true;
+    const states = !isGlobalValue && Array.isArray(applicableStates)
+      ? applicableStates
+      : [];
+
+    // A state-specific holiday must have at least one state
+    if (!isGlobalValue && states.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'A state-specific holiday must have at least one state selected'
+      });
+    }
+
+    const holiday = new Holiday({
+      name,
+      date: d,
+      type: type || 'NATIONAL',
+      isGlobal: isGlobalValue,
+      applicableStates: states
+    });
+
     await holiday.save();
     res.json({ success: true, data: holiday, message: 'Holiday added' });
   } catch (error) {
-    console.error(error);
     if (error.code === 11000) {
-      return res.status(400).json({ success: false, message: 'A holiday already exists for this date.' });
+      return res.status(409).json({
+        success: false,
+        message: 'A holiday on this date already exists. Please choose a different date or delete the existing one first.'
+      });
     }
+    console.error(error);
     res.status(500).json({ success: false, message: 'An internal server error occurred' });
   }
 };
 
 exports.editHoliday = async (req, res) => {
   try {
-    const { name, date, type } = req.body;
+    const { name, date, type, isGlobal, applicableStates } = req.body;
+
     const dateStr = date.split('T')[0];
     const d = new Date(`${dateStr}T00:00:00.000Z`);
+
+    const isGlobalValue = isGlobal === false || isGlobal === 'false' ? false : true;
+    const states = !isGlobalValue && Array.isArray(applicableStates)
+      ? applicableStates
+      : [];
+
+    if (!isGlobalValue && states.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'A state-specific holiday must have at least one state selected'
+      });
+    }
+
     const holiday = await Holiday.findByIdAndUpdate(
       req.params.id,
-      { name, date: d, type: type || 'NATIONAL' },
+      {
+        name,
+        date: d,
+        type: type || 'NATIONAL',
+        isGlobal: isGlobalValue,
+        applicableStates: states
+      },
       { returnDocument: 'after' }
     );
+
+    if (!holiday) {
+      return res.status(404).json({ success: false, message: 'Holiday not found' });
+    }
+
     res.json({ success: true, data: holiday, message: 'Holiday updated' });
   } catch (error) {
-    console.error(error);
     if (error.code === 11000) {
-      return res.status(400).json({ success: false, message: 'A holiday already exists for this date.' });
+      return res.status(409).json({
+        success: false,
+        message: 'Another holiday on this date already exists. Please choose a different date.'
+      });
     }
+    console.error(error);
     res.status(500).json({ success: false, message: 'An internal server error occurred' });
   }
 };

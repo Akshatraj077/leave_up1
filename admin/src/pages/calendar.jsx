@@ -54,11 +54,11 @@ const Calendar = () => {
 
   const getDayData = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const holiday = calendarData.holidays.find(h => format(new Date(h.date), 'yyyy-MM-dd') === dateStr);
+    const holidays = calendarData.holidays.filter(h => format(new Date(h.date), 'yyyy-MM-dd') === dateStr);
     const approvedLeaveCount = calendarData.leaveSummary[dateStr] || 0;
     const hasPendingLeaves = calendarData.pendingSummary[dateStr] || false;
     
-    return { holiday, approvedLeaveCount, hasPendingLeaves };
+    return { holidays, approvedLeaveCount, hasPendingLeaves };
   };
 
   // Build grid
@@ -146,7 +146,7 @@ const Calendar = () => {
               return (
                 <div 
                   key={idx} 
-                  className={`min-h-[90px] sm:min-h-[140px] bg-card p-1.5 sm:p-3 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'} ${data.holiday ? 'bg-blue-900/10' : ''}`}
+                  className={`min-h-[90px] sm:min-h-[140px] bg-card p-1.5 sm:p-3 relative flex flex-col transition-all group ${!isCurrentMonth ? 'opacity-40' : 'hover:bg-white/[0.02]'} ${data.holidays.length > 0 ? 'bg-blue-900/10' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-2 relative">
                     <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday(day) ? 'bg-white text-black' : 'text-textSec'}`}>
@@ -160,11 +160,17 @@ const Calendar = () => {
                   </div>
                   
                   <div className="flex-1 flex flex-col gap-2 mt-2">
-                    {data.holiday && (
-                      <div className="text-xs bg-blue-600 border border-blue-500 rounded p-1.5 text-white font-medium leading-tight shadow-sm">
-                        {data.holiday.name}
+                    {data.holidays.length > 0 && data.holidays.map((h, i) => (
+                      <div key={h._id || i} className="text-xs bg-blue-600 border border-blue-500 rounded p-1.5 text-white font-medium leading-tight shadow-sm flex items-center gap-1.5">
+                        <span
+                          className={`shrink-0 w-1.5 h-1.5 rounded-full ${
+                            h.isGlobal !== false ? 'bg-emerald-300' : 'bg-amber-300'
+                          }`}
+                          title={h.isGlobal !== false ? 'Global' : 'Regional'}
+                        />
+                        <span className="truncate">{h.name}</span>
                       </div>
-                    )}
+                    ))}
 
                     {data.approvedLeaveCount > 0 && (
                       <div className="text-xs bg-primary/20 border border-primary/30 text-primary rounded p-1.5 font-medium flex justify-between items-center mt-auto shadow-sm">

@@ -144,11 +144,11 @@ const Calendar = () => {
   const getDayData = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     
-    const holiday = calendarData.holidays.find(h => format(new Date(h.date), 'yyyy-MM-dd') === dateStr);
+    const holidays = calendarData.holidays.filter(h => format(new Date(h.date), 'yyyy-MM-dd') === dateStr);
     const leave = calendarData.leaves.find(l => format(new Date(l.date), 'yyyy-MM-dd') === dateStr);
     const attendance = calendarData.attendances.find(a => format(new Date(a.date), 'yyyy-MM-dd') === dateStr);
     
-    return { holiday, leave, attendance };
+    return { holidays, leave, attendance };
   };
 
   // Build grid
@@ -162,11 +162,14 @@ const Calendar = () => {
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const renderCellContent = (day, data) => {
-    const { holiday, leave, attendance } = data;
+    const { holidays, leave, attendance } = data;
     const isSun = format(day, 'EEEE') === 'Sunday';
 
-    // 1. Holiday (H)
-    if (holiday) return { code: 'H', style: 'bg-blue-600 text-white', label: holiday.name };
+    // 1. Holiday (H) — may have multiple
+    if (holidays.length > 0) {
+      const label = holidays.map(h => h.name).join(', ');
+      return { code: 'H', style: 'bg-blue-600 text-white', label };
+    }
     
     // 2 & 3. Approved Leave (L / HL)
     if (leave && leave.status === 'APPROVED') {
@@ -255,7 +258,7 @@ const Calendar = () => {
               const cellData = renderCellContent(day, data);
               const { code, style, label } = cellData;
               const hasAppliedLeave = data.leave && data.leave.status === 'APPLIED';
-              const showMarkPresentBtn = isToday(day) && format(day, 'EEEE') !== 'Sunday' && !data.holiday && (!data.attendance || data.attendance.status === 'PENDING');
+              const showMarkPresentBtn = isToday(day) && format(day, 'EEEE') !== 'Sunday' && data.holidays.length === 0 && (!data.attendance || data.attendance.status === 'PENDING');
               
               // Only allow regularization on/after joining date
               const dayNormalized = new Date(day);
@@ -319,8 +322,20 @@ const Calendar = () => {
                           </button>
                         )}
                         
-                        {code === 'H' && data.holiday && (
-                          <span className="text-[10px] text-center text-textSec leading-tight px-1 break-words hidden sm:block w-full">{data.holiday.name}</span>
+                        {code === 'H' && data.holidays.length > 0 && (
+                          <div className="w-full flex flex-col gap-0.5 hidden sm:flex">
+                            {data.holidays.map((h, i) => (
+                              <div key={h._id || i} className="flex items-center gap-1 px-1">
+                                <span
+                                  className={`shrink-0 w-1.5 h-1.5 rounded-full ${
+                                    h.isGlobal !== false ? 'bg-emerald-400' : 'bg-amber-400'
+                                  }`}
+                                  title={h.isGlobal !== false ? 'Global' : 'Regional'}
+                                />
+                                <span className="text-[10px] text-center text-textSec leading-tight break-words truncate">{h.name}</span>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </>
                     )}

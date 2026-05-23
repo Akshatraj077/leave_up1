@@ -13,6 +13,37 @@ const { getPaginationParams, buildPaginatedResponse } = require('../utils/pagina
 const { notifyAllAdmins } = require('../utils/notifyAdmins');
 const { resolveAttendanceForEmployee } = require('../utils/attendanceUtils');
 
+/**
+ * Builds a Mongoose query filter that returns only holidays
+ * visible to an employee based on their location.
+ *
+ * Rules:
+ * - If employee has a location: return global holidays + holidays for their state
+ * - If employee has no location (null): return global holidays only
+ * - "Global" means isGlobal is true OR isGlobal field doesn't exist (legacy docs)
+ *
+ * @param {string|null} employeeLocation - 2-letter state code or null
+ * @param {object} extraFilter - additional Mongoose query conditions to merge
+ * @returns {object} Mongoose query filter object
+ */
+const buildHolidayFilter = (employeeLocation, extraFilter = {}) => {
+  let locationFilter;
+
+  if (employeeLocation) {
+    locationFilter = {
+      $or: [
+        { isGlobal: { $ne: false } },           // global holidays (true or field missing)
+        { applicableStates: employeeLocation }   // this employee's specific state
+      ]
+    };
+  } else {
+    // No location set — show only global holidays
+    locationFilter = { isGlobal: { $ne: false } };
+  }
+
+  return { ...locationFilter, ...extraFilter };
+};
+
 exports.login = async (req, res) => {
   try {
     const { emailOrCompanyId, password } = req.body;
@@ -70,7 +101,9 @@ exports.getDashboard = async (req, res) => {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    const upcomingHolidays = await Holiday.find({ date: { $gte: today } }).sort({ date: 1 }).limit(5);
+    const upcomingHolidays = await Holiday.find(
+      buildHolidayFilter(user.location, { date: { $gte: today } })
+    ).sort({ date: 1 }).limit(5);
 
     const profileFields = [
       'name', 'pan_number', 'bank_account_number',
@@ -125,7 +158,7 @@ exports.applyLeave = async (req, res) => {
     }
 
     const policy = await getPolicy();
-    const holidays = await Holiday.find({});
+    const holidays = await Holiday.find(buildHolidayFilter(user.location));
 
     if (!isWorkingDay(leaveDate, holidays, policy.working_days)) {
       const onHoliday = isHoliday(leaveDate, holidays);
@@ -392,7 +425,10 @@ exports.getCalendar = async (req, res) => {
     const startDate = new Date(Date.UTC(year, month - 1, 1));
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-    const holidays = await Holiday.find({ date: { $gte: startDate, $lte: endDate } });
+    const calUser = await User.findById(req.user.id).select('location');
+    const holidays = await Holiday.find(
+      buildHolidayFilter(calUser?.location || null, { date: { $gte: startDate, $lte: endDate } })
+    );
     const leaves = await Leave.find({
       user_id: req.user.id,
       date: { $gte: startDate, $lte: endDate },
@@ -421,7 +457,8 @@ exports.markPresent = async (req, res) => {
     const today = new Date(`${todayString}T00:00:00.000Z`);
 
     const policy = await getPolicy();
-    const holidays = await Holiday.find({});
+    const presentUser = await User.findById(req.user.id).select('location');
+    const holidays = await Holiday.find(buildHolidayFilter(presentUser?.location || null));
     
     if (!isWorkingDay(today, holidays, policy.working_days)) {
       return res.status(400).json({ success: false, message: 'Today is a non-working day or Holiday' });
@@ -495,7 +532,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const allowedFields = ['name', 'pan_number', 'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name'];
+    const allowedFields = ['name', 'pan_number', 'bank_account_number', 'bank_name', 'ifsc_code', 'account_holder_name', 'location'];
     const updates = {};
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
@@ -628,7 +665,8 @@ exports.getAttendanceToday = async (req, res) => {
     const today = new Date(`${todayString}T00:00:00.000Z`);
 
     const policy = await getPolicy();
-    const holidays = await Holiday.find({});
+    const attUser = await User.findById(req.user.id).select('location');
+    const holidays = await Holiday.find(buildHolidayFilter(attUser?.location || null));
 
     const dayOfWeek = today.getDay();
     const isTodayWorkingDay = isWorkingDay(today, holidays, policy.working_days);

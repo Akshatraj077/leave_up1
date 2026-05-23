@@ -6,10 +6,12 @@ const publicHolidaySchema = new mongoose.Schema({
   year: { type: Number, required: true, index: true },
   type: {
     type: String,
-    enum: ['NATIONAL', 'REGIONAL'],
+    enum: ['NATIONAL', 'REGIONAL', 'OPTIONAL'],
     default: 'NATIONAL'
   },
   regions: [String], // ISO codes e.g. ["IN-WB", "IN-TN"]
+  isGlobal: { type: Boolean, default: true },
+  applicableStates: [String], // state codes e.g. ["MH", "WB"]
   note: { type: String, default: '' },
   isCustom: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },

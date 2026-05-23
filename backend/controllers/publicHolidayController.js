@@ -107,7 +107,7 @@ const syncHolidays = async (req, res) => {
  */
 const addCustomHoliday = async (req, res) => {
   try {
-    const { name, date, note, type } = req.body;
+    const { name, date, note, type, isGlobal, applicableStates } = req.body;
 
     if (!name || !date) {
       return res.status(400).json({ success: false, message: 'Name and date are required' });
@@ -121,8 +121,8 @@ const addCustomHoliday = async (req, res) => {
     const derivedYear = Number(date.split('-')[0]);
     const currentYear = new Date().getFullYear();
 
-    if (derivedYear !== currentYear) {
-      return res.status(400).json({ success: false, message: 'Can only add custom holidays for the current year' });
+    if (derivedYear < currentYear) {
+      return res.status(400).json({ success: false, message: 'Cannot add custom holidays for past years' });
     }
 
     const holiday = await PublicHoliday.create({
@@ -131,6 +131,8 @@ const addCustomHoliday = async (req, res) => {
       year: derivedYear,
       type: type || 'NATIONAL',
       regions: [],
+      isGlobal: isGlobal !== false, // default true
+      applicableStates: Array.isArray(applicableStates) ? applicableStates : [],
       note: note || '',
       isCustom: true,
       isDeleted: false,
@@ -153,21 +155,19 @@ const addCustomHoliday = async (req, res) => {
 const updateHoliday = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, note } = req.body;
+    const { name, note, type, isGlobal, applicableStates } = req.body;
 
     const holiday = await PublicHoliday.findById(id);
     if (!holiday) {
       return res.status(404).json({ success: false, message: 'Holiday not found' });
     }
 
-    const currentYear = new Date().getFullYear();
-    if (holiday.year !== currentYear) {
-      return res.status(400).json({ success: false, message: 'Can only edit holidays for the current year' });
-    }
-
     // Only update fields that are provided
     if (name !== undefined) holiday.name = name.trim();
     if (note !== undefined) holiday.note = note;
+    if (type !== undefined) holiday.type = type;
+    if (isGlobal !== undefined) holiday.isGlobal = isGlobal;
+    if (applicableStates !== undefined) holiday.applicableStates = Array.isArray(applicableStates) ? applicableStates : [];
 
     await holiday.save();
     return res.json({ success: true, data: holiday });
