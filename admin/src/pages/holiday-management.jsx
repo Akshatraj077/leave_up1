@@ -85,7 +85,7 @@ const HolidayManagement = () => {
 
       <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>
               <tr className="bg-background/80 border-b border-border/50 text-sm text-textSec">
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Holiday Name</th>
@@ -198,13 +198,13 @@ const HolidayModal = ({ holiday, onClose, refresh }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} 
-        className="bg-card border border-border/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-lg overflow-hidden flex flex-col relative z-10"
+        className="bg-card border border-border/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col relative z-10"
       >
         <div className="flex justify-between items-center p-6 border-b border-border/50">
           <h3 className="text-xl font-bold text-white">{isEdit ? 'Edit Holiday' : 'Add New Holiday'}</h3>
           <button onClick={onClose} className="text-textSec hover:text-white transition-colors"><X size={24} /></button>
         </div>
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto custom-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-medium text-textSec uppercase mb-1">Holiday Name *</label>
@@ -250,30 +250,47 @@ const HolidayModal = ({ holiday, onClose, refresh }) => {
             {/* applicableStates — shown only when isGlobal is false */}
             {!formData.isGlobal && (
               <div>
-                <label className="block text-xs font-medium text-textSec uppercase mb-1">
+                <label className="block text-xs font-medium text-textSec uppercase mb-2">
                   Applicable States <span className="text-danger">*</span>
                 </label>
-                <select
-                  multiple
-                  value={formData.applicableStates}
-                  onChange={e =>
-                    setFormData({
-                      ...formData,
-                      applicableStates: Array.from(e.target.selectedOptions, o => o.value)
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-border/60 rounded-lg bg-background/50 text-white focus:ring-1 focus:ring-primary text-sm h-36"
-                >
-                  {INDIAN_STATES.map(s => (
-                    <option key={s.code} value={s.code}>{s.name}</option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-textSec mt-1">
-                  Hold Ctrl (Windows) or Cmd (Mac) to select multiple states.
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+                  {INDIAN_STATES.map(s => {
+                    const isSelected = formData.applicableStates.includes(s.code);
+                    return (
+                      <button
+                        type="button"
+                        key={s.code}
+                        onClick={() => {
+                          const newStates = isSelected
+                            ? formData.applicableStates.filter(code => code !== s.code)
+                            : [...formData.applicableStates, s.code];
+                          setFormData({ ...formData, applicableStates: newStates });
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                          isSelected
+                            ? 'bg-primary/20 text-primary border-primary/50'
+                            : 'bg-background/50 text-textSec border-border/40 hover:border-border/80 hover:bg-background/80'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-[10px] text-textSec">
+                    Click to select or deselect states.
+                  </p>
                   {formData.applicableStates.length > 0 && (
-                    <span className="text-primary ml-2">{formData.applicableStates.length} selected</span>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({ ...formData, applicableStates: [] })}
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      Clear All ({formData.applicableStates.length})
+                    </button>
                   )}
-                </p>
+                </div>
               </div>
             )}
 

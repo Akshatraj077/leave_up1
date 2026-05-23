@@ -25,7 +25,7 @@ const AppLayout = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar isMenuOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-      <div className="flex flex-col flex-1 w-full relative">
+      <div className="flex flex-col flex-1 min-w-0 w-full relative">
         <Navbar onMenuToggle={() => setIsMenuOpen(prev => !prev)} />
         <main className="w-full h-full overflow-y-auto p-3 sm:p-4 md:p-6 flex-1">
           {children}

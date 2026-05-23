@@ -124,7 +124,7 @@ const LeaveHistory = () => {
 
       <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col">
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>
               <tr className="bg-background/80 border-b border-border/50 text-sm text-textSec">
                 <th className="px-6 py-4 font-medium whitespace-nowrap">Date</th>
